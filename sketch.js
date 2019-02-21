@@ -4,6 +4,8 @@ let timer;
 function setup() {
 	createCanvas(windowWidth, windowHeight);
 	frameRate(60);
+	angleMode(DEGREES);
+
 	t = new Transform();
 	timer = new Timer();
 }
@@ -11,27 +13,27 @@ function setup() {
 function draw() {
 	timer.update();
 
-	const stepPerSec = 500;
-	let step = stepPerSec * timer.delta;
-	if (keyIsDown(DOWN_ARROW)) {
-		let translated = new Transform(t.x, t.y + step);
-		if (translated.y < height)
-			t = translated;
-	}
-	if (keyIsDown(UP_ARROW)) {
-		let translated = new Transform(t.x, t.y - step);
-		if (translated.y >= 0)
-			t = translated;
-	}
+	const translationStepPerSec = 100;
+	let translationStep = translationStepPerSec * timer.delta;
+	const rotationStepPerSec = 180;
+	let rotationStep = rotationStepPerSec * timer.delta;
 	if (keyIsDown(RIGHT_ARROW)) {
-		let translated = new Transform(t.x + step, t.y);
-		if (translated.x < width)
-			t = translated;
+		t.rotate(-rotationStep);
 	}
 	if (keyIsDown(LEFT_ARROW)) {
-		let translated = new Transform(t.x - step, t.y);
-		if (translated.x >= 0)
-			t = translated;
+		t.rotate(rotationStep);
+	}
+	if (keyIsDown(DOWN_ARROW)) {
+		let xTranslation = translationStep * cos(t.rotation);
+		let yTranslation = -translationStep * sin(t.rotation);
+		let translated = new Transform(t.x - xTranslation, t.y - yTranslation, t.rotation);
+		t = translated;
+	}
+	if (keyIsDown(UP_ARROW)) {
+		let xTranslation = translationStep * cos(t.rotation);
+		let yTranslation = -translationStep * sin(t.rotation);
+		let translated = new Transform(t.x + xTranslation, t.y + yTranslation, t.rotation);
+		t = translated;
 	}
 
 	push();
@@ -42,6 +44,7 @@ function draw() {
 	push();
 	fill(127);
 	translate(t.x, t.y);
+    rotate(-90 - t.rotation);
 	triangle(-5, -10, 0, 10, 5, -10);
 	pop();
 
@@ -54,9 +57,22 @@ function draw() {
 }
 
 class Transform {
-	constructor(x = 0, y = 0) {
+	constructor(x = 0, y = 0, rotation = 0) {
 		this.x = x;
 		this.y = y;
+		this.rotation = this.bindDegrees(rotation);
+	}
+
+	bindDegrees(angle) {
+		while (angle < 0)
+			angle += 360;
+		while (angle >= 360)
+			angle -= 360;
+		return (angle);
+	}
+
+	rotate(angle) {
+		this.rotation = this.bindDegrees(this.rotation + angle);
 	}
 }
 
