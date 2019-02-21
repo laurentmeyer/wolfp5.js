@@ -66,6 +66,7 @@ class Timer {
 class World {
     constructor() {
         this.player = new Player ();
+        this.map = new Map();
     }
 
     update() {
@@ -73,6 +74,7 @@ class World {
     }
 
     draw() {
+        this.map.draw();
         this.player.draw();
 	}
 }
@@ -118,6 +120,65 @@ class Player {
 		translate(this.transform.x, this.transform.y);
 		rotate(-90 - this.transform.rotation);
 		triangle(-5, -10, 0, 10, 5, -10);
+		pop();
+	}
+}
+
+class Map {
+    constructor() {
+        this.walls = [
+            ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
+            ['W', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'W'],
+            ['W', ' ', 'B', ' ', ' ', ' ', ' ', ' ', ' ', 'W'],
+            ['W', ' ', ' ', 'B', ' ', ' ', ' ', ' ', ' ', 'W'],
+            ['W', ' ', 'B', 'B', ' ', ' ', ' ', ' ', ' ', 'W'],
+            ['W', ' ', 'B', 'B', ' ', ' ', ' ', ' ', ' ', 'W'],
+            ['W', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'W'],
+			['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']];
+		this.wallsAreLegal = true;
+		this.checkWalls();
+		this.wallSidePixels = min(height / (this.walls.length), width / (2 * this.walls[0].length));
+		this.width = this.wallSidePixels * this.walls[0].length;
+		this.height = this.wallSidePixels * this.walls.length;
+	}
+
+	checkWalls() {
+		for (var j = 0; j < this.walls.length; j++) {
+			if (this.walls[j].length != this.walls[0].length) {
+				print("Map is not rectangular");
+				this.wallsAreLegal = false;
+				return;
+			}
+			for (var i = 0; i < this.walls[0].length; i++) {
+				if (i == 0 || i == this.walls[0].length - 1
+					|| j == 0 || j == this.walls.length - 1) {
+					this.walls[j][i] = 'W';
+				}
+			}
+		}
+	}
+
+    toMapPosition(transform) {
+        let x = transform.x * this.wallSidePixels;
+        let y = transform.y - this.walls.length / 2;
+        y *= this.wallSidePixels;
+        y += height / 2;
+        return (new Transform(x, y, transform.rotation));
+    }
+
+	draw() {
+		if (!this.wallsAreLegal)
+			return;
+		push();
+		fill(196);
+		for (var j = 0; j < this.walls.length; j++) {
+			for (var i = 0; i < this.walls[0].length; i++) {
+				if (this.walls[j][i] != ' ') {
+					let t = this.toMapPosition(new Transform(i, j));
+					rect(t.x, t.y, this.wallSidePixels, this.wallSidePixels);
+				}
+			}
+		}
 		pop();
 	}
 }
