@@ -73,6 +73,7 @@ class World {
         this.player = new Player(this.map.centerFirstFreeSquare());
         this.maxX = this.map.walls[0].length;
         this.maxY = this.map.walls.length;
+		this.columns = floor(width / 2);
     }
 
     update() {
@@ -91,6 +92,7 @@ class Player {
 		this.translationStepPerSec = 2;
 		this.rotationStepPerSec = 180;
 		this.color = color(255, 204, 0);
+		this.fov = 40.0;
 	}
 
 	update() {
@@ -114,7 +116,11 @@ class Player {
 			let translation = new Transform(xTranslation, yTranslation);
 			this.transform = world.map.allowedTranslation(this.transform, translation);
 		}
-		this.hit = new Hit();
+		this.hits = new Array(world.columns);
+		const angleStep = this.fov / world.columns;
+		for (let i = 0; i < world.columns; i++) {
+			this.hits[i] = new Hit(this.fov / 2 - i * angleStep);
+		}
 	}
 
 	draw() {
@@ -125,7 +131,9 @@ class Player {
 		rotate(-90 - this.transform.rotation);
 		triangle(-5, -10, 0, 10, 5, -10);
 		pop();
-		this.hit.draw();
+		for (let i = 0; i < world.columns; i++) {
+			this.hits[i].draw();
+		}
 	}
 }
 
