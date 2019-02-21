@@ -65,8 +65,8 @@ class Timer {
 
 class World {
     constructor() {
-        this.player = new Player ();
         this.map = new Map();
+        this.player = new Player(this.map.centerFirstFreeSquare());
     }
 
     update() {
@@ -82,7 +82,7 @@ class World {
 class Player {
 	constructor(transform = new Transform()) {
 		this.transform = transform;
-		this.translationStepPerSec = 100;
+		this.translationStepPerSec = 2;
 		this.rotationStepPerSec = 180;
 		this.color = color(255, 204, 0);
 	}
@@ -117,7 +117,8 @@ class Player {
 	draw() {
 		push();
 		fill(this.color);
-		translate(this.transform.x, this.transform.y);
+		let t = world.map.toMapPosition(new Transform(this.transform.x, this.transform.y));
+		translate(t.x, t.y);
 		rotate(-90 - this.transform.rotation);
 		triangle(-5, -10, 0, 10, 5, -10);
 		pop();
@@ -157,6 +158,16 @@ class Map {
 			}
 		}
 	}
+
+    centerFirstFreeSquare() {
+        for (var j = 0; j < this.walls.length; j++) {
+            for (var i = 0; i < this.walls[0].length; i++) {
+                if (this.walls[j][i] == ' ') {
+                    return (new Transform(i + 0.5, j + 0.5));
+                }
+            }
+        }
+    }
 
     toMapPosition(transform) {
         let x = transform.x * this.wallSidePixels;
