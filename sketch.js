@@ -99,18 +99,14 @@ class Player {
 		if (keyIsDown(DOWN_ARROW)) {
 			let xTranslation = translationStep * cos(this.transform.rotation);
 			let yTranslation = -translationStep * sin(this.transform.rotation);
-			let translated = new Transform(this.transform.x - xTranslation,
-				this.transform.y - yTranslation,
-				this.transform.rotation);
-			this.transform = translated;
+			let translation = new Transform(-xTranslation, -yTranslation);
+			this.transform = world.map.allowedTranslation(this.transform, translation);
 		}
 		if (keyIsDown(UP_ARROW)) {
 			let xTranslation = translationStep * cos(this.transform.rotation);
 			let yTranslation = -translationStep * sin(this.transform.rotation);
-			let translated = new Transform(this.transform.x + xTranslation,
-				this.transform.y + yTranslation,
-				this.transform.rotation);
-			this.transform = translated;
+			let translation = new Transform(xTranslation, yTranslation);
+			this.transform = world.map.allowedTranslation(this.transform, translation);
 		}
 	}
 
@@ -158,6 +154,19 @@ class Map {
 			}
 		}
 	}
+
+    allowedTranslation(position, translation) {
+        var allowed = new Transform();
+        allowed.rotation = position.rotation;
+
+        var x = position.x + translation.x;
+        var tx = Math.trunc(x);
+        allowed.x = this.walls[Math.trunc(position.y)][tx] == ' ' ? x : position.x;
+        var y = position.y + translation.y;
+        var ty = Math.trunc(y);
+        allowed.y = this.walls[ty][Math.trunc(allowed.x)] == ' ' ? y : position.y;
+        return (allowed);
+    }
 
     centerFirstFreeSquare() {
         for (var j = 0; j < this.walls.length; j++) {
