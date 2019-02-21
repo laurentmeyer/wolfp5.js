@@ -1,5 +1,6 @@
 let world;
 let timer;
+let textures;
 
 function setup() {
 	createCanvas(windowWidth, windowHeight);
@@ -8,6 +9,17 @@ function setup() {
 
 	world = new World();	
 	timer = new Timer();
+	const imgPath = "assets";
+    textures = {
+        'W': {
+            "lit" : loadImage(imgPath + "/tex_wall_lit.png"),
+            "unlit" : loadImage(imgPath + "/tex_wall_unlit.png")
+        },
+        'B': {
+            "lit" : loadImage(imgPath + "/tex_wood_lit.png"),
+            "unlit" : loadImage(imgPath + "/tex_wood_unlit.png")
+        }
+    };
 }
 
 function draw() {
@@ -143,6 +155,8 @@ class Hit {
 		this.impact = this.raycast();
 		this.color = color(255, 0, 0);
         this.distance = this.distance();
+        this.texID = this.verticalHit ? this.verticalTexID : this.horizontalTexID;
+        this.texPerc = this.verticalHit ? this.impact.y - floor(this.impact.y) : this.impact.x - floor(this.impact.x);
     }
 
     distance() {
@@ -168,6 +182,7 @@ class Hit {
             if (!this.withinBounds(impact, 0, west))
                 return (null);
         }
+        this.verticalTexID = world.map.walls[Math.trunc(impact.y)][Math.trunc(impact.x - west)];
         return (impact);
     }
 
@@ -188,6 +203,7 @@ class Hit {
             if (!this.withinBounds(impact, north, 0))
                 return (null);
         }
+        this.horizontalTexID = world.map.walls[Math.trunc(impact.y - north)][Math.trunc(impact.x)];
         return (impact);
     }
 
@@ -222,12 +238,20 @@ class Hit {
     drawFps(i) {
         push();
         let h = world.map.width / this.distance;
-        if (h > world.map.height)
-            h = world.map.height;
-		let x = width / 2 + i;
-		let y = height / 2;
-        this.verticalHit ? stroke(0, 127, 0) : stroke(0, 0, 127);
-		line(x, y - h / 2, x, y + h / 2);
+        var img = textures[this.texID][this.verticalHit ? "lit" : "unlit"];
+		var dx = width / 2 + i;
+        var sx = floor(img.width * this.texPerc);
+		if (h < world.map.height) {
+			image(img, dx, (height - h) / 2, 1, floor(h), sx, 0, 1, img.height);
+			pop();
+			return ;
+		}
+        var dy = (height - world.map.height) / 2;
+        var dHeight =  floor(world.map.height);
+        var vPerc = world.map.height / h;
+        var sy = img.height * (1 - vPerc) / 2;
+        var sHeight = img.height - 2 * sy;
+        image(img, dx, dy, 1, dHeight, sx, sy, 1, sHeight);
         pop();
     }
 
