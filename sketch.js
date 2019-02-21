@@ -132,7 +132,7 @@ class Player {
 		triangle(-5, -10, 0, 10, 5, -10);
 		pop();
 		for (let i = 0; i < world.columns; i++) {
-			this.hits[i].draw();
+			this.hits[i].draw(i);
 		}
 	}
 }
@@ -142,7 +142,14 @@ class Hit {
         this.ray = new Transform(world.player.transform.x, world.player.transform.y, world.player.transform.rotation + angle);
 		this.impact = this.raycast();
 		this.color = color(255, 0, 0);
-	}
+        this.distance = this.distance();
+    }
+
+    distance() {
+        var dx = this.impact.x - this.ray.x;
+        var dy = this.impact.y - this.ray.y;
+        return (sqrt(dx * dx + dy * dy));
+    }
 
     raycastVertical() {
         if (this.ray.rotation == 90 || this.ray.rotation == 270)
@@ -194,6 +201,7 @@ class Hit {
             shortest = v;
         else
             shortest = this.ray.sqrDistance(v) < this.ray.sqrDistance(h) ? v : h;
+        this.verticalHit = (shortest == v);
         return (shortest);
     }
 
@@ -211,8 +219,21 @@ class Hit {
         pop();
     }
 
-    draw() {
+    drawFps(i) {
+        push();
+        let h = world.map.width / this.distance;
+        if (h > world.map.height)
+            h = world.map.height;
+		let x = width / 2 + i;
+		let y = height / 2;
+        this.verticalHit ? stroke(0, 127, 0) : stroke(0, 0, 127);
+		line(x, y - h / 2, x, y + h / 2);
+        pop();
+    }
+
+    draw(i) {
         this.drawMap();
+        this.drawFps(i);
     }
 }
 
