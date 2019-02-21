@@ -108,6 +108,7 @@ class Player {
 			let translation = new Transform(xTranslation, yTranslation);
 			this.transform = world.map.allowedTranslation(this.transform, translation);
 		}
+		this.hit = new Hit();
 	}
 
 	draw() {
@@ -118,7 +119,48 @@ class Player {
 		rotate(-90 - this.transform.rotation);
 		triangle(-5, -10, 0, 10, 5, -10);
 		pop();
+		this.hit.draw();
 	}
+}
+
+class Hit {
+    constructor(angle = 0) {
+        this.ray = new Transform(world.player.transform.x, world.player.transform.y, world.player.transform.rotation + angle);
+		this.impact = this.raycast();
+		this.color = color(255, 0, 0);
+	}
+
+    raycastVertical() {
+        if (this.ray.rotation == 90 || this.ray.rotation == 270)
+            return (null);
+        let impact = new Transform();
+        let west = this.ray.rotation > 90 && this.ray.rotation < 270;
+        impact.x = west ? floor(this.ray.x) : ceil(this.ray.x);
+		let adj = impact.x - this.ray.x;
+		let t = tan(this.ray.rotation);
+        impact.y = this.ray.y - adj * t;
+        return (impact);
+    }
+
+    raycast() {
+        var v = this.raycastVertical(); 
+        if (null == v)
+            return (new Transform ());
+        return (v);
+    }
+
+    drawMap() {
+        push();
+        let r = world.map.toMapPosition(world.player.transform);
+        stroke(this.color);
+        let i = world.map.toMapPosition(this.impact);
+        line(r.x, r.y, i.x, i.y);
+        pop();
+    }
+
+    draw() {
+        this.drawMap();
+    }
 }
 
 class Map {
