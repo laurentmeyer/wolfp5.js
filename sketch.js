@@ -156,11 +156,37 @@ class Hit {
         return (impact);
     }
 
+    raycastHorizontal() {
+        if (this.ray.rotation == 0 || this.ray.rotation == 180)
+            return (null);
+        let impact = new Transform();
+        let north = this.ray.rotation < 180;
+        impact.y = north ? floor(this.ray.y) : ceil(this.ray.y);
+		let adj = impact.y - this.ray.y;
+		let t = tan(90 + this.ray.rotation);
+        impact.x = this.ray.x + adj * t;
+        if (!this.withinBounds(impact, north, 0))
+            return (null);
+        while (world.map.walls[Math.trunc(impact.y - north)][Math.trunc(impact.x)] == ' ') {
+            impact.y += north ? -1 : 1;
+            impact.x += north ? -t : t;
+            if (!this.withinBounds(impact, north, 0))
+                return (null);
+        }
+        return (impact);
+    }
+
     raycast() {
-        var v = this.raycastVertical(); 
+        let h = this.raycastHorizontal(); 
+        let v = this.raycastVertical(); 
+        let shortest;
         if (null == v)
-            return (new Transform ());
-        return (v);
+            shortest = h;
+        else if (null == h)
+            shortest = v;
+        else
+            shortest = this.ray.sqrDistance(v) < this.ray.sqrDistance(h) ? v : h;
+        return (shortest);
     }
 
     withinBounds(impact, north, west) {
