@@ -48,6 +48,10 @@ class Transform {
 	rotate(angle) {
 		this.rotation = this.bindDegrees(this.rotation + angle);
 	}
+
+	sqrDistance(t) {
+		return (sq(this.x - t.x) + sq(this.y - t.y));
+	}
 }
 
 class Timer {
@@ -67,6 +71,8 @@ class World {
     constructor() {
         this.map = new Map();
         this.player = new Player(this.map.centerFirstFreeSquare());
+        this.maxX = this.map.walls[0].length;
+        this.maxY = this.map.walls.length;
     }
 
     update() {
@@ -139,6 +145,14 @@ class Hit {
 		let adj = impact.x - this.ray.x;
 		let t = tan(this.ray.rotation);
         impact.y = this.ray.y - adj * t;
+        if (!this.withinBounds(impact, 0, west))
+            return (null);
+        while (world.map.walls[Math.trunc(impact.y)][Math.trunc(impact.x - west)] == ' ') {
+            impact.x += west ? -1 : 1;
+            impact.y += west ? t : -t;
+            if (!this.withinBounds(impact, 0, west))
+                return (null);
+        }
         return (impact);
     }
 
@@ -147,6 +161,11 @@ class Hit {
         if (null == v)
             return (new Transform ());
         return (v);
+    }
+
+    withinBounds(impact, north, west) {
+        return (impact.y - north >= 0 && impact.y - north <= world.maxY - 1
+            && impact.x - west >= 0 && impact.x - west <= world.maxX - 1);
     }
 
     drawMap() {
