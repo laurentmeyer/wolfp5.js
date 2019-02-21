@@ -28,8 +28,12 @@ function draw() {
 
 
 	push();
-	fill(30);
+	fill(20);
 	rect(0, 0, width, height);
+	fill(31);
+	rect(width / 2, (height - world.map.height) / 2, width / 2, world.map.height / 2);
+	fill(95);
+	rect(width / 2, height / 2, width / 2, world.map.height / 2);
 	pop();
 
 	world.draw();
@@ -162,7 +166,7 @@ class Hit {
     distance() {
         var dx = this.impact.x - this.ray.x;
         var dy = this.impact.y - this.ray.y;
-        return (sqrt(dx * dx + dy * dy));
+        return (abs(dx * cos(world.player.transform.rotation) - dy * sin(world.player.transform.rotation)));
     }
 
     raycastVertical() {
